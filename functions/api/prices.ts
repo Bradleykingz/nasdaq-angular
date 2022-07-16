@@ -5,6 +5,17 @@ export async function onRequest(context: CFContext) {
 
   const url = new URL(context.request.url)
 
+  const hasTickerParam = url.searchParams.has("ticker")
+
+  if (!hasTickerParam){
+    return new Response(JSON.stringify({message: "No ticker param provided"}), {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      status: 400,
+    })
+  }
+
   const tickerDataURL = `https://data.nasdaq.com/api/v3/datatables/WIKI/PRICES/${url.search}&api_key=${nasdaqAPIKey}`;
 
   const responseData = await fetch(tickerDataURL)
