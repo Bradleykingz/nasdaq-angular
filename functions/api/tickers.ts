@@ -57,7 +57,8 @@ export async function onRequest(context: CFContext) {
 
   return new Response(tickerDataJSON, {
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*"
     }
   });
 }
