@@ -1,12 +1,14 @@
 import { Component, ViewChild, OnInit } from '@angular/core';
-import { Chart, ChartConfiguration, ChartEvent, ChartType } from 'chart.js';
+import {Chart, ChartConfiguration, ChartEvent, ChartType, Tick} from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import * as dayjs from 'dayjs'
 
 import {default as Annotation} from 'chartjs-plugin-annotation';
 import {HttpClient} from "@angular/common/http";
+import {ActivatedRoute, Router} from "@angular/router";
 
 type Ticker = {
-
+  ticker: string
 }
 
 @Component({
@@ -16,11 +18,12 @@ type Ticker = {
 })
 export class DashboardComponent implements OnInit {
 
-  nasdaqAPIKey = "ibdbaFnCTjN1-cX_xjz2"
-  private tickerDataURL = `https://data.nasdaq.com/api/v3/datatables/WIKI/PRICES/?api_key=${this.nasdaqAPIKey}`;
-  private tickerURL= "https://static.quandl.com/coverage/WIKI_PRICES.csv"
+  private tickerDataURL = `https://nasdaq-angular.pages.dev/api/prices`;
+  private tickerURL = "https://nasdaq-angular.pages.dev/api/tickers"
 
-  constructor(private http: HttpClient) {
+  tickers: Ticker[] = []
+
+  constructor(private http: HttpClient, private router: Router, private route: ActivatedRoute) {
 
   }
 
@@ -31,7 +34,7 @@ export class DashboardComponent implements OnInit {
   public lineChartData: ChartConfiguration['data'] = {
     datasets: [
       {
-        data: [ 65, 59, 80, 81, 56, 55, 40 ],
+        data: [65, 59, 80, 81, 56, 55, 40],
         label: 'Series A',
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderColor: 'rgba(148,159,177,1)',
@@ -42,7 +45,7 @@ export class DashboardComponent implements OnInit {
         fill: 'origin',
       },
     ],
-    labels: [ 'January', 'February', 'March', 'April', 'May', 'June', 'July' ]
+    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July']
   };
 
   public lineChartOptions: ChartConfiguration['options'] = {
@@ -70,44 +73,61 @@ export class DashboardComponent implements OnInit {
   public lineChartType: ChartType = 'line';
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
-  selectedDateRange: any = {start: "10/10/10", end: "10/10/20"};
+
+  maxDate: any = dayjs("2018-04-11")
+  defaultStartDate: any = dayjs(localStorage.getItem("startDate")) || dayjs(this.maxDate).subtract(1, 'month')
+  selectedDateRange: any = {startDate: this.defaultStartDate, endDate: dayjs(localStorage.getItem("endDate")) || this.maxDate};
+
+  activeSVSTR = "AAPL"
+
+  ranges: any = {
+    'Today': [dayjs(), dayjs()],
+    'Yesterday': [dayjs().subtract(1, 'days'), dayjs().subtract(1, 'days')],
+    'Last 7 Days': [dayjs().subtract(6, 'days'), dayjs()],
+    'Last 30 Days': [dayjs().subtract(29, 'days'), dayjs()],
+    'This Month': [dayjs().startOf('month'), dayjs().endOf('month')],
+    'Last Month': [dayjs().subtract(1, 'month').startOf('month'), dayjs().subtract(1, 'month').endOf('month')]
+  }
 
   getTickerData() {
-    this.http.get<string>(this.tickerURL, {
-      // @ts-ignore
-      responseType: "text"
-    }).subscribe(data => {
-      console.log(this.csvToJSON(String(data)));
-    })
+    this.http.get<Ticker[]>(this.tickerURL).subscribe(data => this.tickers = data)
   }
+
+  switchActiveSVSTR(ticker: string) {
+    this.router.navigate([''], {
+      queryParams: {
+        ...this.route.snapshot.queryParams,
+        ticker: ticker
+      }
+    });
+    this.activeSVSTR = ticker
+    this.getDataForTicker(ticker)
+  }
+
 
   getDataForTicker(ticker: string) {
 
   }
 
-  private csvToJSON(csv: string){
+  dateRangeChanged(event: any){
+    let startDate = dayjs(event.startDate).format("YYYY-MM-DD")
+    let endDate = dayjs(event.endDate).format("YYYY-MM-DD")
 
-    const lines = csv.split("\n");
+    if (!event.startDate && !event.endDate) {
+      startDate = this.defaultStartDate;
+      endDate = this.maxDate;
+    } else {
+      localStorage.setItem("startDate", startDate.toString());
+      localStorage.setItem("endDate", endDate.toString());
 
-    const result = [];
-    const headers=lines[0].split(",");
-
-    for(let i=1; i<lines.length; i++){
-
-      const obj = {};
-      const currentline = lines[i].split(",");
-
-      for(let j=0; j<headers.length; j++){
-        // @ts-ignore
-        obj[headers[j]] = currentline[j];
-      }
-
-      result.push(obj);
+      this.router.navigate([''], {
+        queryParams: {
+          ...this.route.snapshot.queryParams,
+          startDate, endDate,
+        }
+      });
 
     }
-
-    //return result; //JavaScript object
-    return JSON.stringify(result); //JSON
   }
 
 }
