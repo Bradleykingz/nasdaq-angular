@@ -1,0 +1,15 @@
+@import "~node_modules/ngx-popperjs/scss/theme-white";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;400;600&display=swap');
+
+body {
+  font-family: Poppins, sans-serif;
+}
+
+  h2 {
+  font-size: 2rem !important;
+  font-weight: bold !important;
+}
+
+.md-drppicker {
+  margin-top: 1rem !important;
+}
