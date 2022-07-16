@@ -55,5 +55,9 @@ export async function onRequest(context: CFContext) {
   const tickerDataJSON = csvToJSON(await tickerData.text())
 
 
-  return new Response("Hello World!");
+  return new Response(tickerDataJSON, {
+    headers: {
+      "Content-Type": "application/json"
+    }
+  });
 }
