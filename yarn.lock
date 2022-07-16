@@ -1290,6 +1290,13 @@
   resolved "https://registry.npmjs.org/@leichtgewicht/ip-codec/-/ip-codec-2.0.4.tgz"
   integrity sha512-Hcv+nVC0kZnQ3tD9GVu5xSMR4VVYOteQIr/hwFPVEvPdlXqgGEuRjiheChHgdM+JyqdgNcmzZOX/tnl0JOiI7A==
 
+"@ng-select/ng-select@^9.0.2":
+  version "9.0.2"
+  resolved "https://registry.yarnpkg.com/@ng-select/ng-select/-/ng-select-9.0.2.tgz#15e270c2933423c7eaef6a09a1723db1e5212521"
+  integrity sha512-xdNiz/kgkMWYW1qFtk/337xDk/cmfEbSVtTFxWIM2OnIX1XsQOnTlGiBYces1TsMfqS68HjAvljEkj8QIGN2Lg==
+  dependencies:
+    tslib "^2.3.1"
+
 "@ngtools/webpack@14.0.6":
   version "14.0.6"
   resolved "https://registry.npmjs.org/@ngtools/webpack/-/webpack-14.0.6.tgz"
@@ -1392,11 +1399,6 @@
     "@npmcli/promise-spawn" "^3.0.0"
     node-gyp "^8.4.1"
     read-package-json-fast "^2.0.3"
-
-"@popperjs/core@^2.11.5":
-  version "2.11.5"
-  resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.5.tgz#db5a11bf66bdab39569719555b0f76e138d7bd64"
-  integrity sha512-9X2obfABZuDVLCgPK9aX0a/x4jaOEweTTWE2+9sr0Qqqevj2Uv5XorvusThmc9XGYpS9yI+fhh8RTafBtGposw==
 
 "@schematics/angular@14.0.6":
   version "14.0.6"
@@ -4453,14 +4455,6 @@ ngx-daterangepicker-material@^5.0.2:
     dayjs "^1.10.4"
     tslib "^2.0.0"
 
-ngx-popperjs@^14.1.0:
-  version "14.1.0"
-  resolved "https://registry.yarnpkg.com/ngx-popperjs/-/ngx-popperjs-14.1.0.tgz#0dad1686caeafe425e3f87934c15e47a91fff2e0"
-  integrity sha512-vmg10XBt3IY7PVzwQlVlj+Nyfk6tO2jJX16m4Un2+ngjmjQSyYO0oNL2Nx7eXJ7AHg3ILB87bGSWzbeUpCMVbQ==
-  dependencies:
-    "@popperjs/core" "^2.11.5"
-    tslib "^2.3.0"
-
 nice-napi@^1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/nice-napi/-/nice-napi-1.0.2.tgz"
@@ -6178,7 +6172,7 @@ tree-kill@1.2.2:
   resolved "https://registry.npmjs.org/tree-kill/-/tree-kill-1.2.2.tgz"
   integrity sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==
 
-tslib@2.4.0, tslib@^2.0.0, tslib@^2.1.0, tslib@^2.3.0:
+tslib@2.4.0, tslib@^2.0.0, tslib@^2.1.0, tslib@^2.3.0, tslib@^2.3.1:
   version "2.4.0"
   resolved "https://registry.npmjs.org/tslib/-/tslib-2.4.0.tgz"
   integrity sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==
