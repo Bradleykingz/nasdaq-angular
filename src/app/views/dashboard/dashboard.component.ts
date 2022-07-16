@@ -1,14 +1,24 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
-import {Chart, ChartConfiguration, ChartEvent, ChartType, Tick} from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
+import {Component, OnInit, AfterViewInit, ViewChild} from '@angular/core';
+import {ChartConfiguration, ChartType} from 'chart.js';
+import {BaseChartDirective} from 'ng2-charts';
 import * as dayjs from 'dayjs'
-
-import {default as Annotation} from 'chartjs-plugin-annotation';
 import {HttpClient} from "@angular/common/http";
 import {ActivatedRoute, Router} from "@angular/router";
 
 type Ticker = {
   ticker: string
+}
+
+type DataTable = {
+  datatable: {
+    data: any[][]
+    columns: Column[]
+  }
+}
+
+type Column = {
+  name: string,
+  type: string
 }
 
 @Component({
@@ -22,6 +32,7 @@ export class DashboardComponent implements OnInit {
   private tickerURL = "https://nasdaq-angular.pages.dev/api/tickers"
 
   tickers: Ticker[] = []
+  filteredTickers: Ticker[] = []
 
   constructor(private http: HttpClient, private router: Router, private route: ActivatedRoute) {
 
@@ -29,6 +40,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     this.getTickerData()
+    this.getDataForTicker(this.activeSVSTR, this.startDate, this.endDate)
   }
 
   public lineChartData: ChartConfiguration['data'] = {
@@ -75,19 +87,12 @@ export class DashboardComponent implements OnInit {
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
   maxDate: any = dayjs("2018-04-11")
-  defaultStartDate: any = dayjs(localStorage.getItem("startDate")) || dayjs(this.maxDate).subtract(1, 'month')
-  selectedDateRange: any = {startDate: this.defaultStartDate, endDate: dayjs(localStorage.getItem("endDate")) || this.maxDate};
+  startDate: any = sessionStorage.getItem("startDate") ? dayjs(sessionStorage.getItem("startDate")) : dayjs(this.maxDate).subtract(12, 'month')
 
-  activeSVSTR = "AAPL"
+  endDate: any = sessionStorage.getItem("endDate") ? dayjs(sessionStorage.getItem("endDate")) : dayjs(this.maxDate)
+  selectedDateRange: any = {startDate: this.startDate, endDate: this.endDate};
 
-  ranges: any = {
-    'Today': [dayjs(), dayjs()],
-    'Yesterday': [dayjs().subtract(1, 'days'), dayjs().subtract(1, 'days')],
-    'Last 7 Days': [dayjs().subtract(6, 'days'), dayjs()],
-    'Last 30 Days': [dayjs().subtract(29, 'days'), dayjs()],
-    'This Month': [dayjs().startOf('month'), dayjs().endOf('month')],
-    'Last Month': [dayjs().subtract(1, 'month').startOf('month'), dayjs().subtract(1, 'month').endOf('month')]
-  }
+  activeSVSTR = this.route.snapshot.queryParams["ticker"] || sessionStorage.getItem('activeTicker') || "AAPL"
 
   getTickerData() {
     this.http.get<Ticker[]>(this.tickerURL).subscribe(data => this.tickers = data)
@@ -100,13 +105,38 @@ export class DashboardComponent implements OnInit {
         ticker: ticker
       }
     });
+    sessionStorage.setItem('activeTicker', ticker)
     this.activeSVSTR = ticker
-    this.getDataForTicker(ticker)
+    this.getDataForTicker(ticker, this.selectedDateRange.startDate.toString(), this.selectedDateRange.endDate.toString())
   }
 
 
-  getDataForTicker(ticker: string) {
+  getDataForTicker(ticker: string, startDate: string, endDate: string) {
 
+    startDate = dayjs(startDate).format("YYYY-MM-DD")
+    endDate = dayjs(endDate).format("YYYY-MM-DD")
+
+    this.http.get<DataTable>(this.tickerDataURL, {
+      params: {
+        ticker,
+        "date.gte": startDate,
+        "date.lte": endDate
+      }
+    }).subscribe(response => {
+
+        const datatable = response.datatable;
+        const columns: Column[] = datatable.columns;
+
+        const closeIndex = columns.findIndex(c => c.name === "close");
+        const dateIndex = columns.findIndex(c => c.name === "date");
+
+      this.lineChartData.labels = datatable.data.map((obj) => obj[dateIndex])
+      this.lineChartData.datasets[0].data = datatable.data.map((obj) => obj[closeIndex]);
+      this.lineChartData.datasets[0].label = ticker;
+
+        this.chart?.chart?.update();
+      }
+    );
   }
 
   dateRangeChanged(event: any){
@@ -114,11 +144,15 @@ export class DashboardComponent implements OnInit {
     let endDate = dayjs(event.endDate).format("YYYY-MM-DD")
 
     if (!event.startDate && !event.endDate) {
-      startDate = this.defaultStartDate;
+      startDate = this.startDate;
       endDate = this.maxDate;
     } else {
-      localStorage.setItem("startDate", startDate.toString());
-      localStorage.setItem("endDate", endDate.toString());
+
+      this.startDate = event.startDate
+      this.endDate = event.endDate
+
+      sessionStorage.setItem("startDate", startDate.toString());
+      sessionStorage.setItem("endDate", endDate.toString());
 
       this.router.navigate([''], {
         queryParams: {
@@ -127,6 +161,7 @@ export class DashboardComponent implements OnInit {
         }
       });
 
+      this.getDataForTicker(this.activeSVSTR, startDate.toString(), endDate.toString())
     }
   }
 
