@@ -1,4 +1,4 @@
-type CFContext = {
+export type CFContext = {
   request: Request,
   env: any,
   params: any,
@@ -36,7 +36,6 @@ function csvToJSON(csv: string){
 export async function onRequest(context: CFContext) {
 
   const nasdaqAPIKey = "ibdbaFnCTjN1-cX_xjz2"
-  const tickerDataURL = `https://data.nasdaq.com/api/v3/datatables/WIKI/PRICES/?api_key=${nasdaqAPIKey}`;
   const tickerURL= "https://static.quandl.com/coverage/WIKI_PRICES.csv"
 
   const {
