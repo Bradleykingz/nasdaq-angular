@@ -3,7 +3,6 @@ import { Chart, ChartConfiguration, ChartEvent, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
 import {default as Annotation} from 'chartjs-plugin-annotation';
-import {NgxPopperjsPlacements, NgxPopperjsTriggers} from "ngx-popperjs";
 import {HttpClient} from "@angular/common/http";
 
 type Ticker = {
@@ -71,8 +70,6 @@ export class DashboardComponent implements OnInit {
   public lineChartType: ChartType = 'line';
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
-  dateRangeDropdownPlacement = NgxPopperjsPlacements.BOTTOM;
-  dateRangeDropdownTrigger = NgxPopperjsTriggers.click;
   selectedDateRange: any = {start: "10/10/10", end: "10/10/20"};
 
   getTickerData() {
