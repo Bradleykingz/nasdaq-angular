@@ -58,7 +58,8 @@ export async function onRequest(context: CFContext) {
   return new Response(tickerDataJSON, {
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*"
+      "Access-Control-Allow-Origin": "*",
+      "Cache-Control": "public, max-age=31536000"
     }
   });
 }
