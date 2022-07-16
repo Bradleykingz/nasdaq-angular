@@ -76,11 +76,11 @@ export class DashboardComponent implements OnInit {
   selectedDateRange: any = {start: "10/10/10", end: "10/10/20"};
 
   getTickerData() {
-    this.http.get<string[]>(this.tickerURL, {
+    this.http.get<string>(this.tickerURL, {
       // @ts-ignore
       responseType: "text"
     }).subscribe(data => {
-      console.log(data);
+      console.log(this.csvToJSON(String(data)));
     })
   }
 
