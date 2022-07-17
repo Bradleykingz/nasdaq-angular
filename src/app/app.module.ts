@@ -7,6 +7,7 @@ import { NgxDaterangepickerMd } from 'ngx-daterangepicker-material';
 import {AppRoutingModule} from "./app-routing.module";
 import {FormsModule} from "@angular/forms";
 import {HttpClientModule} from "@angular/common/http";
+import {NgSelectModule} from "@ng-select/ng-select";
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import {HttpClientModule} from "@angular/common/http";
     FormsModule,
     HttpClientModule,
     NgChartsModule,
+    NgSelectModule,
     NgxDaterangepickerMd.forRoot(),
     AppRoutingModule
   ],

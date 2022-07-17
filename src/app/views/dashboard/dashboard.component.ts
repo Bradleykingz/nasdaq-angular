@@ -94,6 +94,20 @@ export class DashboardComponent implements OnInit {
 
   activeSVSTR = this.route.snapshot.queryParams["ticker"] || sessionStorage.getItem('activeTicker') || "AAPL"
 
+  selectedClosingOption: number = 1;
+
+  closingOptions = [
+    { id: 1, name: 'Closing Price' },
+    { id: 2, name: 'Adj. Closing Price' },
+  ];
+
+  datatable: DataTable = {
+    datatable: {
+      data: [],
+      columns: []
+    }
+  }
+
   getTickerData() {
     this.http.get<Ticker[]>(this.tickerURL).subscribe(data => this.tickers = data)
   }
@@ -123,6 +137,7 @@ export class DashboardComponent implements OnInit {
         "date.lte": endDate
       }
     }).subscribe(response => {
+        this.datatable = response
 
         const datatable = response.datatable;
         const columns: Column[] = datatable.columns;
@@ -130,9 +145,9 @@ export class DashboardComponent implements OnInit {
         const closeIndex = columns.findIndex(c => c.name === "close");
         const dateIndex = columns.findIndex(c => c.name === "date");
 
-      this.lineChartData.labels = datatable.data.map((obj) => obj[dateIndex])
-      this.lineChartData.datasets[0].data = datatable.data.map((obj) => obj[closeIndex]);
-      this.lineChartData.datasets[0].label = ticker;
+        this.lineChartData.labels = datatable.data.map((obj) => obj[dateIndex])
+        this.lineChartData.datasets[0].data = datatable.data.map((obj) => obj[closeIndex]);
+        this.lineChartData.datasets[0].label = ticker;
 
         this.chart?.chart?.update();
       }
@@ -162,6 +177,19 @@ export class DashboardComponent implements OnInit {
       });
 
       this.getDataForTicker(this.activeSVSTR, startDate.toString(), endDate.toString())
+    }
+  }
+
+  onClosingOptionChanged(event: any){
+    switch (event.id){
+      case 1:
+        this.lineChartData.datasets[0].data = this.datatable.datatable.data.map((obj) => obj[this.datatable.datatable.columns.findIndex(c => c.name === "close")]);
+        break;
+      case 2:
+        this.lineChartData.datasets[0].data = this.datatable.datatable.data.map((obj) => obj[this.datatable.datatable.columns.findIndex(c => c.name === "adj_close")]);
+        break;
+        default:
+          break;
     }
   }
 

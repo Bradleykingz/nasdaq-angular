@@ -49,10 +49,18 @@
 
     <div class="flex px-4 py-4" style="box-shadow: 0px 0px 10px -4px rgba(0, 0, 0, 0.25); border-radius: 10px;">
       <div>
-        <div>
-          <p>
-            Closing Price
-          </p>
+        <div class="max-w-{200}" style="max-width: 200px">
+
+          <!--Using items input-->
+          <ng-select [items]="closingOptions"
+                     bindLabel="name"
+                     bindValue="id"
+                     placeholder="Select an Item"
+                     [(ngModel)]="selectedClosingOption"
+                     (change)="onClosingOptionChanged($event)"
+                     class="rounded custom-theme"
+          >
+          </ng-select>
         </div>
         <canvas baseChart
                 width="1200"
