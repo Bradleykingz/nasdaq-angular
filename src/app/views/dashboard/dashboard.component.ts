@@ -87,7 +87,7 @@ export class DashboardComponent implements OnInit {
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
   maxDate: any = dayjs("2018-04-11")
-  startDate: any = sessionStorage.getItem("startDate") ? dayjs(sessionStorage.getItem("startDate")) : dayjs(this.maxDate).subtract(12, 'month')
+  startDate: any = sessionStorage.getItem("startDate") ? dayjs(sessionStorage.getItem("startDate")) : dayjs(this.maxDate).subtract(1, 'month')
 
   endDate: any = sessionStorage.getItem("endDate") ? dayjs(sessionStorage.getItem("endDate")) : dayjs(this.maxDate)
   selectedDateRange: any = {startDate: this.startDate, endDate: this.endDate};
