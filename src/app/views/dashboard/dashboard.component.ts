@@ -1,5 +1,5 @@
 import {Component, OnInit, AfterViewInit, ViewChild} from '@angular/core';
-import {ChartConfiguration, ChartType} from 'chart.js';
+import {ChartConfiguration, ChartData, ChartType} from 'chart.js';
 import {BaseChartDirective} from 'ng2-charts';
 import * as dayjs from 'dayjs'
 import {HttpClient} from "@angular/common/http";
@@ -40,27 +40,50 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     this.getTickerData()
-    this.getDataForTicker(this.activeSVSTR, this.startDate, this.endDate)
+
+    this.getDataForTicker(this.activeTicker, this.formattedStartDate, this.formattedEndDate)
+
+    const hasParamsTicker = this.route.snapshot.queryParams["ticker"] != null
+    const hasParamsStartDate = this.route.snapshot.queryParams["startDate"] != null
+    const hasParamsEndDate = this.route.snapshot.queryParams["endDate"] != null
+
+    if (!hasParamsTicker || !hasParamsStartDate || hasParamsEndDate) {
+      this.router.navigate([''], {
+        queryParams: {
+          ...this.route.snapshot.queryParams,
+          ...(!hasParamsTicker && {
+            ticker: this.activeTicker
+          }),
+          ...(!hasParamsStartDate && {
+            startDate: this.formattedStartDate
+          }),
+          ...(!hasParamsEndDate && {
+            endDate: this.formattedEndDate
+          })
+        }
+      })
+    }
+
   }
 
-  public lineChartData: ChartConfiguration['data'] = {
+  public lineChartData: ChartData = {
     datasets: [
       {
-        data: [65, 59, 80, 81, 56, 55, 40],
-        label: 'Series A',
+        data: [],
+        label: '',
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderColor: 'rgba(148,159,177,1)',
         pointBackgroundColor: 'rgba(148,159,177,1)',
         pointBorderColor: '#fff',
         pointHoverBackgroundColor: '#fff',
         pointHoverBorderColor: 'rgba(148,159,177,0.8)',
-        fill: 'origin',
       },
     ],
-    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July']
+    labels: [],
   };
 
   public lineChartOptions: ChartConfiguration['options'] = {
+
     elements: {
       line: {
         tension: 0.5
@@ -76,6 +99,21 @@ export class DashboardComponent implements OnInit {
     },
 
     plugins: {
+      tooltip: {
+        callbacks: {
+          label(tooltipItem): string | string[] {
+            let label = tooltipItem.dataset.label || '';
+
+            if (label) {
+              label += ': ';
+            }
+            if (tooltipItem.parsed.y !== null) {
+              label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(tooltipItem.parsed.y);
+            }
+            return label;
+          }
+        }
+      },
       legend: {
         display: false,
       },
@@ -86,13 +124,24 @@ export class DashboardComponent implements OnInit {
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
-  maxDate: any = dayjs("2018-04-11")
-  startDate: any = sessionStorage.getItem("startDate") ? dayjs(sessionStorage.getItem("startDate")) : dayjs(this.maxDate).subtract(1, 'month')
+  private sessionStorageStartDate = sessionStorage.getItem('startDate')
+  private sessionStorageEndDate = sessionStorage.getItem('endDate')
 
-  endDate: any = sessionStorage.getItem("endDate") ? dayjs(sessionStorage.getItem("endDate")) : dayjs(this.maxDate)
-  selectedDateRange: any = {startDate: this.startDate, endDate: this.endDate};
+  maxDate: dayjs.Dayjs = dayjs("2018-04-11")
+  defaultStartDate: dayjs.Dayjs = dayjs(this.maxDate).subtract(1, 'month')
 
-  activeSVSTR = this.route.snapshot.queryParams["ticker"] || sessionStorage.getItem('activeTicker') || "AAPL"
+  startDate: dayjs.Dayjs = this.sessionStorageStartDate ? dayjs(this.sessionStorageStartDate) : this.defaultStartDate
+  formattedStartDate = this.startDate.format('YYYY-MM-DD')
+
+  endDate: dayjs.Dayjs = this.sessionStorageEndDate ? dayjs(this.sessionStorageEndDate) : dayjs(this.maxDate)
+  formattedEndDate = this.endDate.format('YYYY-MM-DD')
+
+  selectedDateRange: { endDate: dayjs.Dayjs; startDate: dayjs.Dayjs } = {
+    startDate: this.startDate,
+    endDate: this.endDate
+  };
+
+  activeTicker = this.route.snapshot.queryParams["ticker"] || sessionStorage.getItem('activeTicker') || "AAPL"
 
   selectedClosingOption: number = 1;
 
@@ -101,7 +150,7 @@ export class DashboardComponent implements OnInit {
     { id: 2, name: 'Adj. Closing Price' },
   ];
 
-  datatable: DataTable = {
+  table: DataTable = {
     datatable: {
       data: [],
       columns: []
@@ -112,7 +161,7 @@ export class DashboardComponent implements OnInit {
     this.http.get<Ticker[]>(this.tickerURL).subscribe(data => this.tickers = data)
   }
 
-  switchActiveSVSTR(ticker: string) {
+  switchActiveTicker(ticker: string) {
     this.router.navigate([''], {
       queryParams: {
         ...this.route.snapshot.queryParams,
@@ -120,33 +169,24 @@ export class DashboardComponent implements OnInit {
       }
     });
     sessionStorage.setItem('activeTicker', ticker)
-    this.activeSVSTR = ticker
-    this.getDataForTicker(ticker, this.selectedDateRange.startDate.toString(), this.selectedDateRange.endDate.toString())
+    this.activeTicker = ticker
+    this.getDataForTicker(ticker)
   }
 
 
-  getDataForTicker(ticker: string, startDate: string, endDate: string) {
-
-    startDate = dayjs(startDate).format("YYYY-MM-DD")
-    endDate = dayjs(endDate).format("YYYY-MM-DD")
+  getDataForTicker(ticker: string, startDate?: string, endDate?: string) {
 
     this.http.get<DataTable>(this.tickerDataURL, {
       params: {
         ticker,
-        "date.gte": startDate,
-        "date.lte": endDate
+        "date.gte": startDate || this.formattedStartDate,
+        "date.lte": endDate || this.formattedEndDate,
       }
     }).subscribe(response => {
-        this.datatable = response
+        this.table = response
 
-        const datatable = response.datatable;
-        const columns: Column[] = datatable.columns;
-
-        const closeIndex = columns.findIndex(c => c.name === "close");
-        const dateIndex = columns.findIndex(c => c.name === "date");
-
-        this.lineChartData.labels = datatable.data.map((obj) => obj[dateIndex])
-        this.lineChartData.datasets[0].data = datatable.data.map((obj) => obj[closeIndex]);
+        this.lineChartData.labels = this.getDataWithKey("date").map(d=> dayjs(d).format("DD/MM/YY"))
+        this.lineChartData.datasets[0].data = this.getDataWithKey("close")
         this.lineChartData.datasets[0].label = ticker;
 
         this.chart?.chart?.update();
@@ -155,38 +195,46 @@ export class DashboardComponent implements OnInit {
   }
 
   dateRangeChanged(event: any){
-    let startDate = dayjs(event.startDate).format("YYYY-MM-DD")
-    let endDate = dayjs(event.endDate).format("YYYY-MM-DD")
 
-    if (!event.startDate && !event.endDate) {
-      startDate = this.startDate;
-      endDate = this.maxDate;
-    } else {
+    if (event.startDate && event.endDate) {
 
-      this.startDate = event.startDate
-      this.endDate = event.endDate
+      let startDate = dayjs(event.startDate)
+      let endDate = dayjs(event.endDate)
 
-      sessionStorage.setItem("startDate", startDate.toString());
-      sessionStorage.setItem("endDate", endDate.toString());
+      this.startDate = startDate
+      this.endDate = endDate
+
+      let formattedStartDate = startDate.format('YYYY-MM-DD')
+      let formattedEndDate = endDate.format('YYYY-MM-DD');
+
+      sessionStorage.setItem("startDate", formattedStartDate);
+      sessionStorage.setItem("endDate", formattedEndDate);
 
       this.router.navigate([''], {
         queryParams: {
           ...this.route.snapshot.queryParams,
-          startDate, endDate,
+          startDate: formattedStartDate,
+          endDate: formattedEndDate,
         }
       });
 
-      this.getDataForTicker(this.activeSVSTR, startDate.toString(), endDate.toString())
+      this.getDataForTicker(this.activeTicker, formattedStartDate, formattedEndDate)
     }
+  }
+
+  getDataWithKey(key: string){
+    return this.table.datatable.data.map((obj) => obj[this.table.datatable.columns.findIndex(c => c.name === key)])
   }
 
   onClosingOptionChanged(event: any){
     switch (event.id){
       case 1:
-        this.lineChartData.datasets[0].data = this.datatable.datatable.data.map((obj) => obj[this.datatable.datatable.columns.findIndex(c => c.name === "close")]);
+        this.lineChartData.datasets[0].data = this.getDataWithKey("close");
+        this.chart?.chart?.update();
         break;
       case 2:
-        this.lineChartData.datasets[0].data = this.datatable.datatable.data.map((obj) => obj[this.datatable.datatable.columns.findIndex(c => c.name === "adj_close")]);
+        this.lineChartData.datasets[0].data = this.getDataWithKey("adj_close");
+        this.chart?.chart?.update();
         break;
         default:
           break;
