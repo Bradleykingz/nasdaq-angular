@@ -8,11 +8,13 @@ import {AppRoutingModule} from "./app-routing.module";
 import {FormsModule} from "@angular/forms";
 import {HttpClientModule} from "@angular/common/http";
 import {NgSelectModule} from "@ng-select/ng-select";
+import {FilterTickersPipe} from "./pipes/filter-tickers-pipe";
 
 @NgModule({
   declarations: [
     AppComponent,
-    DashboardComponent
+    DashboardComponent,
+    FilterTickersPipe
   ],
   imports: [
     BrowserModule,
@@ -23,7 +25,9 @@ import {NgSelectModule} from "@ng-select/ng-select";
     NgxDaterangepickerMd.forRoot(),
     AppRoutingModule
   ],
-  providers: [],
+  providers: [
+    FilterTickersPipe
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -1,4 +1,4 @@
-import {Component, OnInit, AfterViewInit, ViewChild} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {ChartConfiguration, ChartData, ChartType} from 'chart.js';
 import {BaseChartDirective} from 'ng2-charts';
 import * as dayjs from 'dayjs'
@@ -32,7 +32,6 @@ export class DashboardComponent implements OnInit {
   private tickerURL = "https://nasdaq-angular.pages.dev/api/tickers"
 
   tickers: Ticker[] = []
-  filteredTickers: Ticker[] = []
 
   constructor(private http: HttpClient, private router: Router, private route: ActivatedRoute) {
 
@@ -157,6 +156,8 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  searchInputModel: string = ""
+
   getTickerData() {
     this.http.get<Ticker[]>(this.tickerURL).subscribe(data => this.tickers = data)
   }
@@ -185,8 +186,8 @@ export class DashboardComponent implements OnInit {
     }).subscribe(response => {
         this.table = response
 
-        this.lineChartData.labels = this.getDataWithKey("date").map(d=> dayjs(d).format("DD/MM/YY"))
-        this.lineChartData.datasets[0].data = this.getDataWithKey("close")
+        this.updateChartDataWithKey("close");
+        this.lineChartData.labels = this.getDataWithKey("date").map(d => dayjs(d).format("DD/MM/YY"))
         this.lineChartData.datasets[0].label = ticker;
 
         this.chart?.chart?.update();
@@ -222,6 +223,11 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  updateChartDataWithKey(key: string){
+    this.lineChartData.datasets[0].data = this.getDataWithKey(key);
+    this.chart?.chart?.update();
+  }
+
   getDataWithKey(key: string){
     return this.table.datatable.data.map((obj) => obj[this.table.datatable.columns.findIndex(c => c.name === key)])
   }
@@ -229,12 +235,10 @@ export class DashboardComponent implements OnInit {
   onClosingOptionChanged(event: any){
     switch (event.id){
       case 1:
-        this.lineChartData.datasets[0].data = this.getDataWithKey("close");
-        this.chart?.chart?.update();
+        this.updateChartDataWithKey("close")
         break;
       case 2:
-        this.lineChartData.datasets[0].data = this.getDataWithKey("adj_close");
-        this.chart?.chart?.update();
+        this.updateChartDataWithKey("adj_close")
         break;
         default:
           break;

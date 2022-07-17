@@ -1,0 +1,11 @@
+
+.active-ticker {
+  color: white;
+  padding: .2rem 0.45rem;
+  border-radius: 4px;
+  background: #51459E;
+}
+
+.active-ticker p {
+  font-weight: bold;
+}

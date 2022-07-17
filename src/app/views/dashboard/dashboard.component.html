@@ -1,18 +1,23 @@
 <div class="flex overflow-hidden" style="height: 100vh">
   <div class="sidebar p-3" style="background: #F7F8FD">
-    <h2 class="bold mb-2" style="color: #51459E">Nasdaq</h2>
+    <h2 class="bold mb-2 text-nasdaq-purple">Nasdaq</h2>
     <div class="h-full">
       <div class="mb-2">
-        <input class="py-3 px-4 rounded" placeholder="Type to Search"/>
+        <input class="py-3 px-4 rounded focus-visible:border-nasdaq-purple"
+               placeholder="Type to Search"
+               name="search"
+               [(ngModel)]="searchInputModel"
+        />
       </div>
       <div class="bg-white px-4 py-4 mb-2 h-screen rounded overflow-scroll">
-        <div *ngFor="let item of tickers; index as i;" class="cursor-pointer"
+        <div *ngFor="let item of tickers | tickerFilter: searchInputModel" class="cursor-pointer"
+             [id]="item.ticker"
+             [ngClass]="[
+                item.ticker == activeTicker ? 'active-ticker' : ''
+             ]"
              (click)="switchActiveTicker(item.ticker)"
         >
-          <p [ngClass]="[
-                item.ticker == activeTicker ? 'text-indigo-700' : '' ,
-                item.ticker == activeTicker ? 'font-bold': '' ,
-          ]">{{item.ticker}}</p>
+          <p>{{item.ticker}}</p>
         </div>
       </div>
     </div>
@@ -20,7 +25,7 @@
   <div class="w-full px-4" style="">
     <div class="nav-header flex justify-between">
       <div class="py-4">
-        <h3 class="bold mb-2" style="color: #51459E">{{activeTicker}}</h3>
+        <h3 class="bold mb-2 text-nasdaq-purple">{{activeTicker}}</h3>
       </div>
 
       <div class="flex items-center">
@@ -29,7 +34,7 @@
         </div>
         <div>
           <div>
-            <div class="bg-indigo-700 py-2 px-8 rounded ml-2">
+            <div class="bg-nasdaq-purple py-2 px-8 rounded ml-2">
               <input type="text"
                      style="width: 13rem"
                      class="bg-transparent text-white cursor-pointer focus-visible:border-none"
@@ -64,15 +69,15 @@
           </ng-select>
         </div>
         <div *ngIf="lineChartData.datasets[0].data.length == 0; else chartCanvas">
-          <p>
+          <p class="mt-4">
             Please wait...
           </p>
         </div>
         <ng-template #chartCanvas>
-          <div>
+          <div class="mt-4">
             <canvas baseChart
                     width="1200"
-                    height="800"
+                    height="700"
                     [data]="lineChartData"
                     [options]="lineChartOptions"
                     [type]="lineChartType"></canvas>
